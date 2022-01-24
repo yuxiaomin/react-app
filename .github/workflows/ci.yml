@@ -22,7 +22,8 @@ jobs:
         uses: actions/setup-node@v2
         with:
           node-version: "16.x"
-      - run: npm ci
+      - run: |
+          npm ci
       - run: npm run format:check
       - run: npm run test -- --coverage
         env:
@@ -35,6 +36,17 @@ jobs:
       - name: Build project
         if: github.event_name == 'push'
         run: npm run build
+      - name: Upload build
+        if: github.event_name == 'push'
+        uses: actions/upload-artifact@v2
+        with:
+          name: build
+          path: build
+      - name: Zip assets
+        if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+        run: |
+          zip -r build.zip ./build
+          zip -r coverage.zip ./coverage
       - name: Create a release
         if: github.event_name == 'push' && github.ref == 'refs/heads/master'
         run: npx semantic-release
